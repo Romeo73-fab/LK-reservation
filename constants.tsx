@@ -26,7 +26,7 @@ export const getConfirmationEmailHTML = (res: any) => `
 <body>
     <div class="container">
         <div class="header">
-            <h1 style="margin:0; font-size: 28px;">🦎LIZARD KING BAR</h1>
+            <h1 style="margin:0; font-size: 28px;">LIZARD KING BAR</h1>
             <p style="margin:10px 0 0 0; letter-spacing: 2px;">${SLOGAN}</p>
         </div>
         <div class="content">
