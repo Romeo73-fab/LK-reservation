@@ -1,15 +1,29 @@
 
-import React, { useState } from 'react';
-import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { HashRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { Booking } from './pages/Booking';
 import { Confirmation } from './pages/Confirmation';
 import { AdminScanner } from './pages/AdminScanner';
+import { AdminLogin } from './pages/AdminLogin';
 import { Music, ShieldCheck, Menu, X, MapPin, Phone } from 'lucide-react';
 import { ADMIN_PHONE, LOCATION, SLOGAN } from './constants';
 
 const App: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
+    return sessionStorage.getItem('admin_auth') === 'true';
+  });
+
+  const handleLoginSuccess = () => {
+    setIsAdminLoggedIn(true);
+    sessionStorage.setItem('admin_auth', 'true');
+  };
+
+  const handleLogout = () => {
+    setIsAdminLoggedIn(false);
+    sessionStorage.removeItem('admin_auth');
+  };
 
   return (
     <Router>
@@ -34,6 +48,9 @@ const App: React.FC = () => {
                 <Link to="/admin" className="text-zinc-500 hover:text-zinc-300">
                   <ShieldCheck className="w-5 h-5" />
                 </Link>
+                {isAdminLoggedIn && (
+                  <button onClick={handleLogout} className="text-xs text-red-500 hover:underline">Déconnexion</button>
+                )}
               </div>
 
               {/* Mobile Menu Button */}
@@ -61,11 +78,20 @@ const App: React.FC = () => {
             <Route path="/" element={<Home />} />
             <Route path="/booking" element={<Booking />} />
             <Route path="/confirmation/:id" element={<Confirmation />} />
-            <Route path="/admin" element={<AdminScanner />} />
+            <Route 
+              path="/admin" 
+              element={
+                isAdminLoggedIn ? (
+                  <AdminScanner />
+                ) : (
+                  <AdminLogin onLoginSuccess={handleLoginSuccess} />
+                )
+              } 
+            />
           </Routes>
         </main>
 
-        {/* Footer Restored to Classic State */}
+        {/* Footer */}
         <footer className="bg-zinc-900 border-t border-zinc-800 py-12 mt-auto">
           <div className="max-w-7xl mx-auto px-4 text-center">
             <h3 className="font-rock text-amber-500 text-xl mb-4">"{SLOGAN}"</h3>
