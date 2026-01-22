@@ -4,10 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../services/db';
 import { notificationService } from '../services/notificationService';
 import { Reservation, BookingStatus } from '../types';
-import { Calendar, Users, Clock, Mail, Phone, User, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
-import { ADMIN_PHONE } from '../constants';
+import { Calendar, Users, Clock, Mail, Phone, User, Loader2, AlertTriangle } from 'lucide-react';
 
-declare var PaystackPop: any;
+declare var FedaPay: any;
 
 export const Booking: React.FC = () => {
   const navigate = useNavigate();
@@ -28,22 +27,18 @@ export const Booking: React.FC = () => {
     const hour = parseInt(hourStr);
     const minute = parseInt(minuteStr);
     
-    // Plages autorisées : [22:30 - 23:59] OU [00:00 - 02:00]
-    // Invalide si : 
-    // - entre 02:01 et 22:29
-    
     let isValid = false;
     if (hour >= 22) {
       if (hour === 22) {
         isValid = minute >= 30;
       } else {
-        isValid = true; // 23:xx
+        isValid = true;
       }
     } else if (hour <= 2) {
       if (hour === 2) {
-        isValid = minute === 0; // Jusqu'à 2h pile
+        isValid = minute === 0;
       } else {
-        isValid = true; // 00:xx et 01:xx
+        isValid = true;
       }
     }
     
@@ -52,12 +47,10 @@ export const Booking: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
     if (name === 'time') {
       const isValid = validateTime(value);
       setTimeError(!isValid);
     }
-    
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -73,56 +66,70 @@ export const Booking: React.FC = () => {
     const reservationId = 'RES-' + Math.random().toString(36).substr(2, 9).toUpperCase();
     const amount = 5000;
 
-    // Vérification de la disponibilité de PaystackPop
-    if (typeof PaystackPop === 'undefined') {
-      alert("Le service de paiement est en cours de chargement. Veuillez réessayer dans un instant.");
+    // Robust check for FedaPay library and its required method
+    if (typeof FedaPay === 'undefined' || typeof FedaPay.checkout !== 'function') {
+      alert("Le service de paiement FedaPay n'est pas encore prêt. Veuillez patienter quelques secondes et réessayer.");
       setLoading(false);
       return;
     }
 
-    const handler = PaystackPop.setup({
-      key: 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 
-      email: formData.email,
-      amount: amount * 100,
-      currency: 'GHS', 
-      ref: reservationId,
-      metadata: {
-        custom_fields: [
-          { display_name: "Nom", variable_name: "name", value: formData.fullName },
-          { display_name: "Personnes", variable_name: "guests", value: formData.guests }
-        ]
-      },
-      callback: async function(response: any) {
-        setLoading(false);
-        setNotifying(true);
+    try {
+      // For FedaPay Checkout JS, it's recommended to pass the public_key directly in the checkout options
+      // to avoid initialization state issues in single-page applications.
+      FedaPay.checkout({
+        public_key: 'sk_sandbox_AKhSNDaBT1w2EnHjm1hY01PA',
+        environment: 'sandbox',
+        transaction: {
+          amount: amount,
+          description: `Réservation THE LIZARD KING - ${formData.fullName}`,
+          custom_metadata: {
+            reservation_id: reservationId,
+            guests: formData.guests
+          }
+        },
+        customer: {
+          firstname: formData.fullName.split(' ')[0] || formData.fullName,
+          lastname: formData.fullName.split(' ').slice(1).join(' ') || 'Client',
+          email: formData.email,
+          phone_number: {
+            number: formData.phone.replace(/\s/g, ''),
+            country: 'bj'
+          }
+        },
+        onComplete: async (response: any) => {
+          setLoading(false);
+          setNotifying(true);
 
-        const newRes: Reservation = {
-          ...formData,
-          id: reservationId,
-          amount,
-          currency: 'FCFA',
-          status: BookingStatus.PAID,
-          createdAt: Date.now(),
-          paystackRef: response.reference
-        };
+          const newRes: Reservation = {
+            ...formData,
+            id: reservationId,
+            amount,
+            currency: 'FCFA',
+            status: BookingStatus.PAID,
+            createdAt: Date.now(),
+            paystackRef: response?.transaction?.reference || 'FEDAPAY-' + reservationId
+          };
 
-        db.saveReservation(newRes);
+          db.saveReservation(newRes);
 
-        try {
-          await notificationService.sendBookingNotifications(newRes);
-        } catch (error) {
-          console.error("Erreur lors de l'envoi des notifications:", error);
+          try {
+            await notificationService.sendBookingNotifications(newRes);
+          } catch (error) {
+            console.error("Erreur notifications:", error);
+          }
+
+          setNotifying(false);
+          navigate(`/confirmation/${reservationId}`);
+        },
+        onClose: () => {
+          setLoading(false);
         }
-
-        setNotifying(false);
-        navigate(`/confirmation/${reservationId}`);
-      },
-      onClose: function() {
-        setLoading(false);
-      }
-    });
-
-    handler.openIframe();
+      });
+    } catch (err) {
+      console.error("FedaPay Checkout Error:", err);
+      alert("Une erreur est survenue lors du lancement du paiement. Veuillez rafraîchir la page.");
+      setLoading(false);
+    }
   };
 
   if (notifying) {
@@ -133,7 +140,7 @@ export const Booking: React.FC = () => {
         </div>
         <h2 className="text-3xl font-anton mb-2 tracking-wide text-white">PAIEMENT VALIDÉ !</h2>
         <p className="text-zinc-400 max-w-sm">
-          Génération de votre ticket sécurisé et envoi des confirmations par e-mail...
+          Génération de votre ticket sécurisé THE LIZARD KING...
         </p>
       </div>
     );
@@ -144,7 +151,7 @@ export const Booking: React.FC = () => {
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
         <div className="md:flex">
           <div className="md:w-1/3 bg-amber-600 p-8 text-black">
-            <h2 className="text-3xl font-anton mb-6">RÉSERVER VOTRE PLACE</h2>
+            <h2 className="text-3xl font-anton mb-6 uppercase">Réservation</h2>
             <div className="space-y-6">
               <div>
                 <p className="text-sm font-bold uppercase tracking-wider opacity-70">Tarif Accès</p>
@@ -158,7 +165,7 @@ export const Booking: React.FC = () => {
                 <ul className="space-y-3 font-medium opacity-90">
                   <li>• Live Band Performance</li>
                   <li>• Fidjossè, Atlantique Bich Hotel</li>
-                  <li>• Ticket QR Code personnel</li>
+                  <li>• Paiement sécurisé par FedaPay</li>
                 </ul>
               </div>
             </div>
@@ -225,8 +232,8 @@ export const Booking: React.FC = () => {
                 </div>
               </div>
 
-              <button type="submit" disabled={loading || timeError} className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-95" >
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Payer et Confirmer (5 000 FCFA)"}
+              <button type="submit" disabled={loading || timeError} className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-black font-black py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-95 uppercase tracking-wider" >
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Payer via FedaPay (5 000 FCFA)"}
               </button>
             </form>
           </div>
