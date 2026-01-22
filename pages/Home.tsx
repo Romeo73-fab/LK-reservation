@@ -9,12 +9,7 @@ export const Home: React.FC = () => {
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1514525253361-bee8718a300a?auto=format&fit=crop&q=80&w=1920" 
-            alt="Bar Atmosphere" 
-            className="w-full h-full object-cover opacity-40 grayscale"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-zinc-950"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-900/50 to-zinc-950"></div>
         </div>
 
         <div className="relative z-10 text-center px-4">

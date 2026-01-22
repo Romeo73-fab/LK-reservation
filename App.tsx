@@ -26,7 +26,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <Router>
+    <Router> 
       <div className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100">
         {/* Navigation */}
         <nav className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800">
