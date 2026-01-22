@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Home } from './pages/Home';
@@ -6,7 +5,7 @@ import { Booking } from './pages/Booking';
 import { Confirmation } from './pages/Confirmation';
 import { AdminScanner } from './pages/AdminScanner';
 import { AdminLogin } from './pages/AdminLogin';
-import { Music, ShieldCheck, Menu, X, MapPin, Phone } from 'lucide-react';
+import { ShieldCheck, Menu, X, MapPin, Phone } from 'lucide-react';
 import { ADMIN_PHONE, LOCATION, SLOGAN } from './constants';
 
 const App: React.FC = () => {
@@ -37,10 +36,13 @@ const App: React.FC = () => {
         <nav className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
-              <Link to="/" className="flex items-center space-x-2 group" onClick={() => setIsMenuOpen(false)}>
-                <div className="bg-amber-500 p-2 rounded-lg group-hover:rotate-12 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                  <Music className="w-6 h-6 text-black" />
-                </div>
+              <Link to="/" className="flex items-center space-x-3 group" onClick={() => setIsMenuOpen(false)}>
+                {/* Logo Image */}
+                <img 
+                  src="logo.png" 
+                  alt="Lizard King Logo" 
+                  className="h-12 w-auto object-contain group-hover:rotate-6 transition-transform drop-shadow-[0_0_10px_rgba(220,38,38,0.3)]" 
+                />
                 <span className="text-2xl font-anton tracking-wider text-white uppercase">
                   THE LIZARD <span className="text-red-600">KING</span>
                 </span>
