@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../services/db';
-import { notificationService } from '../services/notificationService';
-import { Reservation, BookingStatus } from '../types';
-import { Calendar, Users, Clock, Mail, Phone, User, Loader2, AlertTriangle } from 'lucide-react';
-import { payReservation } from '../services/db';
+import { db, payReservation } from '../services/db';
+import { Users, Clock, Mail, Phone, User, Loader2 } from 'lucide-react';
 
 export const Booking: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [notifying, setNotifying] = useState(false);
   const [timeError, setTimeError] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -27,19 +23,12 @@ export const Booking: React.FC = () => {
     
     let isValid = false;
     if (hour >= 22) {
-      if (hour === 22) {
-        isValid = minute >= 30;
-      } else {
-        isValid = true;
-      }
+      if (hour === 22) isValid = minute >= 30;
+      else isValid = true;
     } else if (hour <= 2) {
-      if (hour === 2) {
-        isValid = minute === 0;
-      } else {
-        isValid = true;
-      }
+      if (hour === 2) isValid = minute === 0;
+      else isValid = true;
     }
-    
     return isValid;
   };
 
@@ -54,16 +43,10 @@ export const Booking: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (timeError) {
-      alert("Les sessions live ont lieu de 22h30 à 02h00");
-      return;
-    }
-
+    if (timeError) return;
     setLoading(true);
 
     try {
-      // 1️⃣ créer la réservation côté backend
       const res = await fetch(
         "https://lkreservation-api.rf.gd/lkreservation-backend/api/save-reservation.php",
         {
@@ -78,26 +61,15 @@ export const Booking: React.FC = () => {
           })
         }
       );
-
       const result = await res.json();
+      if (!result.reference) throw new Error("Erreur réservation");
 
-      if (!result.reference) {
-        throw new Error("Erreur réservation");
-      }
-
-      // 2️⃣ appeler le paiement backend
-      const payment = await payReservation(
-        result.reference,
-        formData.email
-      );
-
+      const payment = await payReservation(result.reference, formData.email);
       if (payment.payment_url) {
         window.location.href = payment.payment_url;
       } else {
         alert("Erreur paiement");
-        console.log(payment);
       }
-
     } catch (err) {
       console.error(err);
       alert("Erreur serveur");
@@ -106,107 +78,62 @@ export const Booking: React.FC = () => {
     }
   };
 
-  if (notifying) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mb-6">
-          <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
-        </div>
-        <h2 className="text-3xl font-anton mb-2 tracking-wide text-white">PAIEMENT VALIDÉ !</h2>
-        <p className="text-zinc-400 max-w-sm">
-          Génération de votre ticket sécurisé THE LIZARD KING...
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl dark:shadow-none transition-colors duration-300">
         <div className="md:flex">
-          <div className="md:w-1/3 bg-amber-600 p-8 text-black">
-            <h2 className="text-3xl font-anton mb-6 uppercase">Réservation</h2>
-            <div className="space-y-6">
+          <div className="md:w-1/3 bg-red-600 p-10 text-white">
+            <h2 className="text-3xl font-anton mb-8 uppercase tracking-wider">Réservation</h2>
+            <div className="space-y-8">
               <div>
-                <p className="text-sm font-bold uppercase tracking-wider opacity-70">Tarif Accès</p>
-                <p className="text-4xl font-anton">5 000 FCFA</p>
-                <p className="text-xs mt-1">Valable pour une soirée Blues & Rock</p>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-80 mb-2">Tarif Accès</p>
+                <p className="text-5xl font-anton">5 000 <span className="text-xl">FCFA</span></p>
               </div>
-              <div className="border-t border-black/20 pt-6 text-sm">
-                <p className="font-bold mb-4 flex items-center gap-2 italic">
-                   <Clock className="w-4 h-4" /> Vendredi & Samedi
+              <div className="border-t border-white/20 pt-8">
+                <p className="font-bold mb-6 flex items-center gap-3 text-lg">
+                   <Clock className="w-5 h-5" /> Vendredi & Samedi
                 </p>
-                <ul className="space-y-3 font-medium opacity-90">
+                <ul className="space-y-4 text-sm font-semibold opacity-90">
                   <li>• Live Band Performance</li>
                   <li>• Fidjossè, Atlantique Bich Hotel</li>
-                  <li>• Paiement sécurisé par FedaPay</li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <div className="md:w-2/3 p-8 md:p-12">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-zinc-400 flex items-center gap-2">
-                    <User className="w-4 h-4" /> Nom & Prénom
+          <div className="md:w-2/3 p-8 md:p-14 bg-white dark:bg-zinc-950 transition-colors">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                    <User className="w-3.5 h-3.5" /> Nom complet
                   </label>
-                  <input required name="fullName" value={formData.fullName} onChange={handleChange} type="text" placeholder="Jean Dupont" className="w-full bg-zinc-800 border-zinc-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 outline-none transition-all" />
+                  <input required name="fullName" value={formData.fullName} onChange={handleChange} type="text" className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-zinc-400 flex items-center gap-2">
-                    <Mail className="w-4 h-4" /> Email
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                    <Mail className="w-3.5 h-3.5" /> Email
                   </label>
-                  <input required name="email" value={formData.email} onChange={handleChange} type="email" placeholder="votre@email.com" className="w-full bg-zinc-800 border-zinc-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 outline-none transition-all" />
+                  <input required name="email" value={formData.email} onChange={handleChange} type="email" className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all" />
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-zinc-400 flex items-center gap-2">
-                    <Phone className="w-4 h-4" /> Téléphone
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                    <Phone className="w-3.5 h-3.5" /> Téléphone
                   </label>
-                  <input required name="phone" value={formData.phone} onChange={handleChange} type="tel" placeholder="+229 01 53 90 89 08" className="w-full bg-zinc-800 border-zinc-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 outline-none transition-all" />
+                  <input required name="phone" value={formData.phone} onChange={handleChange} type="tel" className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-zinc-400 flex items-center gap-2">
-                    <Users className="w-4 h-4" /> Groupe
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5" /> Groupe
                   </label>
-                  <select name="guests" value={formData.guests} onChange={handleChange} className="w-full bg-zinc-800 border-zinc-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 outline-none transition-all appearance-none" >
+                  <select name="guests" value={formData.guests} onChange={handleChange} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all" >
                     {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} {n > 1 ? 'personnes' : 'personne'}</option>)}
                   </select>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-zinc-400 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" /> Date du Live
-                  </label>
-                  <input required name="date" value={formData.date} onChange={handleChange} type="date" className="w-full bg-zinc-800 border-zinc-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 outline-none transition-all" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-zinc-400 flex items-center gap-2">
-                    <Clock className="w-4 h-4" /> Heure d'arrivée
-                  </label>
-                  <input 
-                    required 
-                    name="time" 
-                    value={formData.time} 
-                    onChange={handleChange} 
-                    type="time" 
-                    className={`w-full bg-zinc-800 border-zinc-700 rounded-xl px-4 py-3 text-white focus:ring-2 outline-none transition-all ${timeError ? 'ring-2 ring-red-500 border-red-500' : 'focus:ring-amber-500'}`} 
-                  />
-                  {timeError && (
-                    <p className="text-red-500 text-[10px] mt-1 flex items-center gap-1 font-bold animate-pulse">
-                      <AlertTriangle className="w-3 h-3" /> Horaires live : 22h30 à 02h00
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <button type="submit" disabled={loading || timeError} className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-black font-black py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-95 uppercase tracking-wider" >
+              <button type="submit" disabled={loading || timeError} className="w-full bg-red-600 hover:bg-red-700 text-white font-black py-5 rounded-2xl shadow-xl shadow-red-600/20 flex items-center justify-center gap-3 transition-all transform active:scale-95 uppercase tracking-[0.15em]" >
                 {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Payer via FedaPay (5 000 FCFA)"}
               </button>
             </form>

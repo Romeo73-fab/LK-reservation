@@ -1,6 +1,6 @@
 {
   "name": "THE LIZARD KING - Blues & Rock Bar",
-  "description": "Système professionnel de réservation et de paiement pour le bar THE LIZARD KING, avec intégration Paystack, génération de QR codes et check-in digital.",
+  "description": "Système professionnel de réservation et de paiement pour le bar THE LIZARD KING, avec intégration FedaPay, génération de QR codes et check-in digital.",
   "requestFramePermissions": [
     "camera"
   ]

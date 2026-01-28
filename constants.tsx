@@ -1,12 +1,11 @@
-
 export const COLORS = {
-  primary: '#d97706', // amber-600
-  background: '#09090b', // zinc-950
-  text: '#fafafa',
+  primary: '#dc2626', // red-600
+  background: '#ffffff', // white
+  text: '#09090b',
 };
 
 export const ADMIN_EMAIL = 'koudjrakoromeofabrice@gmail.com';
-export const ADMIN_PHONE = '+229 01 53 90 89 08';
+export const ADMIN_PHONE = '+229 01 61 19 34 83';
 export const LOCATION = 'Fidjossè, Atlantique Bich Hotel';
 export const SLOGAN = 'Keep on Knocking';
 
@@ -17,10 +16,10 @@ export const getConfirmationEmailHTML = (res: any) => `
     <style>
         body { font-family: 'Helvetica', sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
-        .header { background: #000000; color: #d97706; padding: 40px 20px; text-align: center; }
+        .header { background: #dc2626; color: #ffffff; padding: 40px 20px; text-align: center; }
         .content { padding: 40px; }
         .footer { background: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #777; }
-        .details { background: #fdf6e3; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #d97706; }
+        .details { background: #fff5f5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626; }
     </style>
 </head>
 <body>
