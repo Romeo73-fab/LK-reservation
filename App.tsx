@@ -5,7 +5,7 @@ import { Booking } from './pages/Booking';
 import { Confirmation } from './pages/Confirmation';
 import { AdminScanner } from './pages/AdminScanner';
 import { AdminLogin } from './pages/AdminLogin';
-import { ShieldCheck, Menu, X, MapPin, Phone } from 'lucide-react';
+import { ShieldCheck, Menu, X, MapPin, Phone, Music } from 'lucide-react';
 import { ADMIN_PHONE, LOCATION, SLOGAN } from './constants';
 
 const App: React.FC = () => {
@@ -37,21 +37,10 @@ const App: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
               <Link to="/" className="flex items-center space-x-3 group" onClick={() => setIsMenuOpen(false)}>
-                {/* Logo SVG Lezard */}
-                <svg 
-                  viewBox="0 0 100 100" 
-                  className="h-14 w-14 text-amber-500 group-hover:text-red-600 transition-colors drop-shadow-[0_0_10px_rgba(220,38,38,0.3)]"
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M50,15 C45,15 40,20 42,28 C43,32 48,30 50,35 C52,40 45,45 45,55 C45,65 55,65 55,55 C55,50 52,48 50,48 C48,48 48,50 48,50 S42,52 40,45" stroke="currentColor" strokeWidth="4" strokeLinecap="round" fill="none" />
-                  <circle cx="50" cy="20" r="8" />
-                  <circle cx="47" cy="18" r="2" fill="black" />
-                  <circle cx="53" cy="18" r="2" fill="black" />
-                  <path d="M50,28 Q60,35 60,55 Q60,75 50,85 Q40,75 40,55 Q40,35 50,28" />
-                  <path d="M42,35 L30,30 M58,35 L70,30 M42,65 L30,70 M58,65 L70,70" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                  <path d="M50,85 Q50,95 30,95" stroke="currentColor" strokeWidth="4" fill="none" strokeLinecap="round" />
-                </svg>
+                {/* Icône Note de Musique */}
+                <Music 
+                  className="h-10 w-10 text-amber-500 group-hover:text-red-600 transition-all duration-300 drop-shadow-[0_0_10px_rgba(220,38,38,0.3)] -rotate-12 group-hover:rotate-0" 
+                />
                 <span className="text-2xl font-anton tracking-wider text-white uppercase">
                   THE LIZARD <span className="text-red-600">KING</span>
                 </span>
@@ -86,6 +75,17 @@ const App: React.FC = () => {
               <Link to="/" onClick={() => setIsMenuOpen(false)} className="block text-lg">Accueil</Link>
               <Link to="/booking" onClick={() => setIsMenuOpen(false)} className="block text-lg text-amber-500 font-bold">Réserver une table</Link>
               <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="block text-lg text-zinc-500">Admin</Link>
+              {isAdminLoggedIn && (
+                <button 
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left text-lg text-red-500 font-bold"
+                >
+                  Déconnexion
+                </button>
+              )}
             </div>
           )}
         </nav>

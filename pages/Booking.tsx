@@ -1,12 +1,10 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../services/db';
 import { notificationService } from '../services/notificationService';
 import { Reservation, BookingStatus } from '../types';
 import { Calendar, Users, Clock, Mail, Phone, User, Loader2, AlertTriangle } from 'lucide-react';
-
-declare var FedaPay: any;
+import { payReservation } from '../services/db';
 
 export const Booking: React.FC = () => {
   const navigate = useNavigate();
@@ -54,80 +52,56 @@ export const Booking: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (timeError) {
-      alert("Les sessions live ont lieu de 22h30 à 02h00 du matin. Veuillez ajuster votre horaire.");
+      alert("Les sessions live ont lieu de 22h30 à 02h00");
       return;
     }
-    
+
     setLoading(true);
 
-    const reservationId = 'RES-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-    const amount = 5000;
-
-    // Robust check for FedaPay library and its required method
-    if (typeof FedaPay === 'undefined' || typeof FedaPay.checkout !== 'function') {
-      alert("Le service de paiement FedaPay n'est pas encore prêt. Veuillez patienter quelques secondes et réessayer.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      // For FedaPay Checkout JS, it's recommended to pass the public_key directly in the checkout options
-      // to avoid initialization state issues in single-page applications.
-      FedaPay.checkout({
-        public_key: 'sk_sandbox_AKhSNDaBT1w2EnHjm1hY01PA',
-        environment: 'sandbox',
-        transaction: {
-          amount: amount,
-          description: `Réservation THE LIZARD KING - ${formData.fullName}`,
-          custom_metadata: {
-            reservation_id: reservationId,
-            guests: formData.guests
-          }
-        },
-        customer: {
-          firstname: formData.fullName.split(' ')[0] || formData.fullName,
-          lastname: formData.fullName.split(' ').slice(1).join(' ') || 'Client',
-          email: formData.email,
-          phone_number: {
-            number: formData.phone.replace(/\s/g, ''),
-            country: 'bj'
-          }
-        },
-        onComplete: async (response: any) => {
-          setLoading(false);
-          setNotifying(true);
-
-          const newRes: Reservation = {
-            ...formData,
-            id: reservationId,
-            amount,
-            currency: 'FCFA',
-            status: BookingStatus.PAID,
-            createdAt: Date.now(),
-            paystackRef: response?.transaction?.reference || 'FEDAPAY-' + reservationId
-          };
-
-          db.saveReservation(newRes);
-
-          try {
-            await notificationService.sendBookingNotifications(newRes);
-          } catch (error) {
-            console.error("Erreur notifications:", error);
-          }
-
-          setNotifying(false);
-          navigate(`/confirmation/${reservationId}`);
-        },
-        onClose: () => {
-          setLoading(false);
+      // 1️⃣ créer la réservation côté backend
+      const res = await fetch(
+        "https://lkreservation-api.rf.gd/lkreservation-backend/api/save-reservation.php",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nom: formData.fullName,
+            email: formData.email,
+            telephone: formData.phone,
+            personnes: formData.guests,
+            date_heure: `${formData.date} ${formData.time}`
+          })
         }
-      });
+      );
+
+      const result = await res.json();
+
+      if (!result.reference) {
+        throw new Error("Erreur réservation");
+      }
+
+      // 2️⃣ appeler le paiement backend
+      const payment = await payReservation(
+        result.reference,
+        formData.email
+      );
+
+      if (payment.payment_url) {
+        window.location.href = payment.payment_url;
+      } else {
+        alert("Erreur paiement");
+        console.log(payment);
+      }
+
     } catch (err) {
-      console.error("FedaPay Checkout Error:", err);
-      alert("Une erreur est survenue lors du lancement du paiement. Veuillez rafraîchir la page.");
+      console.error(err);
+      alert("Erreur serveur");
+    } finally {
       setLoading(false);
     }
   };

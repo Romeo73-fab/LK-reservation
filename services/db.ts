@@ -1,4 +1,3 @@
-
 import { Reservation, BookingStatus } from '../types';
 
 const DB_KEY = 'lizard_king_reservations';
@@ -34,3 +33,21 @@ export const db = {
     return null;
   }
 };
+
+// A parti d'ici c'est serieux 
+
+
+const API_URL = "https://lkreservation-api.rf.gd/lkreservation-backend/api";
+
+export async function payReservation(reference: string, email: string) {
+  const response = await fetch(`${API_URL}/pay-reservation.php`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify({ reference, email }),
+  });
+
+  return response.json();
+}
