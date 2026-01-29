@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Users, Clock, Mail, Phone, User, Loader2, LayoutGrid, Calendar } from 'lucide-react';
+import { Users, Clock, Mail, Phone, User, Loader2, LayoutGrid, Calendar, ChevronDown } from 'lucide-react';
 
 export const Booking: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -85,6 +85,9 @@ export const Booking: React.FC = () => {
     }
   };
 
+  // Classe commune pour assurer l'uniformité sur iOS (appearance-none)
+  const inputClass = "w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all appearance-none";
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl dark:shadow-none transition-colors duration-300">
@@ -118,13 +121,13 @@ export const Booking: React.FC = () => {
                   <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                     <User className="w-3.5 h-3.5" /> Nom complet
                   </label>
-                  <input required name="fullName" value={formData.fullName} onChange={handleChange} type="text" className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all" />
+                  <input required name="fullName" value={formData.fullName} onChange={handleChange} type="text" className={inputClass} />
                 </div>
                 <div className="space-y-3">
                   <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5" /> Email
                   </label>
-                  <input required name="email" value={formData.email} onChange={handleChange} type="email" className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all" />
+                  <input required name="email" value={formData.email} onChange={handleChange} type="email" className={inputClass} />
                 </div>
               </div>
 
@@ -133,15 +136,18 @@ export const Booking: React.FC = () => {
                   <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                     <Phone className="w-3.5 h-3.5" /> Téléphone
                   </label>
-                  <input required name="phone" value={formData.phone} onChange={handleChange} type="tel" className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all" />
+                  <input required name="phone" value={formData.phone} onChange={handleChange} type="tel" className={inputClass} />
                 </div>
                 <div className="space-y-3">
                   <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                     <Users className="w-3.5 h-3.5" /> Nombre de personnes
                   </label>
-                  <select name="guests" value={formData.guests} onChange={handleChange} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all" >
-                    {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} {n > 1 ? 'personnes' : 'personne'}</option>)}
-                  </select>
+                  <div className="relative">
+                    <select name="guests" value={formData.guests} onChange={handleChange} className={inputClass} >
+                      {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} {n > 1 ? 'personnes' : 'personne'}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 w-5 h-5 pointer-events-none" />
+                  </div>
                 </div>
               </div>
 
@@ -150,22 +156,25 @@ export const Booking: React.FC = () => {
                   <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                     <Calendar className="w-3.5 h-3.5" /> Date
                   </label>
-                  <input required name="date" value={formData.date} onChange={handleChange} type="date" className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all" />
+                  <input required name="date" value={formData.date} onChange={handleChange} type="date" className={inputClass} />
                 </div>
                 <div className="space-y-3">
                   <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                     <Clock className="w-3.5 h-3.5" /> Heure
                   </label>
-                  <input required name="time" value={formData.time} onChange={handleChange} type="time" className={`w-full bg-zinc-50 dark:bg-zinc-900 border ${timeError ? 'border-red-500' : 'border-zinc-200 dark:border-zinc-800'} rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all`} />
+                  <input required name="time" value={formData.time} onChange={handleChange} type="time" className={`${inputClass} ${timeError ? 'border-red-500' : ''}`} />
                   {timeError && <p className="text-[10px] text-red-500 font-bold uppercase mt-1">Entre 22:30 et 02:00</p>}
                 </div>
                 <div className="space-y-3">
                   <label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                     <LayoutGrid className="w-3.5 h-3.5" /> Table
                   </label>
-                  <select name="table" value={formData.table} onChange={handleChange} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all" >
-                    {['P1', 'P2', 'P3', 'P4'].map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  <div className="relative">
+                    <select name="table" value={formData.table} onChange={handleChange} className={inputClass} >
+                      {['P1', 'P2', 'P3', 'P4'].map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 w-5 h-5 pointer-events-none" />
+                  </div>
                 </div>
               </div>
 
