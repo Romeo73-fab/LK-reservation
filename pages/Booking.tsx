@@ -1,6 +1,7 @@
-
 import React, { useState } from 'react';
 import { Users, Clock, Mail, Phone, User, Loader2, LayoutGrid, Calendar, ChevronDown } from 'lucide-react';
+import { db } from '../services/db';
+import { Reservation, BookingStatus } from '../types';
 
 export const Booking: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -15,8 +16,8 @@ export const Booking: React.FC = () => {
     table: 'P1'
   });
 
-  // URL FedaPay générée par l'utilisateur
-  const FEDAPAY_STATIC_URL = "https://process.fedapay.com/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEwOTA3MDMzOSwiZXhwIjoxNzY5NzA4MjQ1fQ.oeAa0A6bdIPQ0YPwdgwNJhd_QJxJ3vjs8hbmJm3mUZ0";
+  // URL FedaPay mise à jour par l'utilisateur
+  const FEDAPAY_STATIC_URL = "https://process.fedapay.com/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEwOTA3MDMzOSwiZXhwIjoxNzcwMzA2NzI2fQ._3eBFVn_-hn9XWoT1BJfPeQ5Xhvu5KArmcT4OobURIg";
 
   const validateTime = (timeStr: string) => {
     const [hourStr, minuteStr] = timeStr.split(':');
@@ -49,10 +50,33 @@ export const Booking: React.FC = () => {
     if (timeError) return;
     setLoading(true);
 
+    // Génération d'un ID local pour sécuriser la session utilisateur
+    const reservationId = `LK-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    
+    const newReservation: Reservation = {
+      id: reservationId,
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      guests: formData.guests,
+      date: formData.date,
+      time: formData.time,
+      amount: 5000,
+      currency: 'FCFA',
+      status: BookingStatus.PENDING,
+      createdAt: Date.now()
+    };
+
+    // 1. Sauvegarde locale (permet de voir le ticket même si le backend rf.gd échoue)
+    db.saveReservation(newReservation);
+
     try {
-      // Tentative d'enregistrement sur le backend
-      // Note: L'erreur 'Failed to fetch' sur rf.gd est souvent liée à leur protection anti-bot.
-      const res = await fetch(
+      // 2. Tentative d'enregistrement sur le backend avec un timeout
+      // Note: rf.gd bloque souvent le fetch direct à cause de leur sécurité.
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+      await fetch(
         "https://lkreservation-api.rf.gd/lkreservation-backend/api/save-reservation.php",
         {
           method: "POST",
@@ -61,38 +85,33 @@ export const Booking: React.FC = () => {
             "Accept": "application/json"
           },
           body: JSON.stringify({
+            id: reservationId,
             nom: formData.fullName,
             email: formData.email,
             telephone: formData.phone,
             personnes: formData.guests,
             date_heure: `${formData.date} ${formData.time}`,
             table_pref: formData.table
-          })
+          }),
+          signal: controller.signal
         }
       );
-      
-      // On redirige vers FedaPay quoi qu'il arrive si le serveur a répondu
-      // Si le client paie, l'admin pourra voir la réservation (le backend doit gérer le statut)
-      window.location.href = FEDAPAY_STATIC_URL;
-
+      clearTimeout(timeoutId);
     } catch (err) {
-      console.error("Erreur de connexion au serveur:", err);
-      // En cas d'erreur de fetch (CORS/Serveur), on redirige quand même vers le paiement 
-      // car le lien est statique, mais on prévient l'utilisateur
-      window.location.href = FEDAPAY_STATIC_URL;
-    } finally {
-      setLoading(false);
+      // On log l'erreur mais on ne bloque pas l'utilisateur
+      console.warn("Connexion backend échouée (CORS ou Réseau). Passage au paiement sécurisé...");
     }
+
+    // 3. Redirection vers FedaPay quoi qu'il arrive
+    window.location.href = FEDAPAY_STATIC_URL;
   };
 
-  // Classe commune pour assurer l'uniformité sur iOS (appearance-none)
   const inputClass = "w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-4 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-600 outline-none transition-all appearance-none";
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl dark:shadow-none transition-colors duration-300">
         <div className="md:flex">
-          {/* Sidebar Infos */}
           <div className="md:w-1/3 bg-red-600 p-10 text-white">
             <h2 className="text-3xl font-anton mb-8 uppercase tracking-wider">Réservation</h2>
             <div className="space-y-8">
@@ -107,13 +126,12 @@ export const Booking: React.FC = () => {
                 <ul className="space-y-4 text-sm font-semibold opacity-90">
                   <li>• Vendredi & Samedi</li>
                   <li>• 22:30 — 02:00</li>
-                  <li>• Fidjossè, Atlantique Bich Hotel</li>
+                  <li>• Fidjrossè, Atlantique Beach Hotel</li>
                 </ul>
               </div>
             </div>
           </div>
 
-          {/* Formulaire */}
           <div className="md:w-2/3 p-8 md:p-14 bg-white dark:bg-zinc-950 transition-colors">
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -179,7 +197,7 @@ export const Booking: React.FC = () => {
               </div>
 
               <button type="submit" disabled={loading || timeError} className="w-full bg-red-600 hover:bg-red-700 text-white font-black py-5 rounded-2xl shadow-xl shadow-red-600/20 flex items-center justify-center gap-3 transition-all transform active:scale-95 uppercase tracking-[0.15em]" >
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Payer"}
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Procéder au paiement"}
               </button>
             </form>
           </div>

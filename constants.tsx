@@ -6,7 +6,7 @@ export const COLORS = {
 
 export const ADMIN_EMAIL = 'koudjrakoromeofabrice@gmail.com';
 export const ADMIN_PHONE = '+229 01 61 19 34 83';
-export const LOCATION = 'Fidjossè, Atlantique Bich Hotel';
+export const LOCATION = 'Fidjrossè, Atlantique Beach Hotel';
 export const SLOGAN = 'Keep on Knocking';
 
 export const getConfirmationEmailHTML = (res: any) => `
@@ -44,7 +44,7 @@ export const getConfirmationEmailHTML = (res: any) => `
             <p style="font-size: 14px; color: #666;">Veuillez présenter votre QR Code à votre arrivée.</p>
         </div>
         <div class="footer">
-            <p>THE LIZARD KING Bar | Fidjossè | 📞 ${ADMIN_PHONE}</p>
+            <p>THE LIZARD KING Bar | Fidjrossè | 📞 ${ADMIN_PHONE}</p>
         </div>
     </div>
 </body>

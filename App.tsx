@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Home } from './pages/Home';
@@ -53,7 +52,10 @@ const App: React.FC = () => {
         <nav className="sticky top-0 z-50 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-zinc-100 dark:border-zinc-800 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
-                <Link to="/" className="flex items-center space-x-3 group" onClick={() => setIsMenuOpen( 🦎
+              <Link to="/" className="flex items-center space-x-3 group" onClick={() => setIsMenuOpen(false)}>
+                <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
+                  <span className="text-2xl select-none" style={{ filter: 'brightness(0) invert(1)' }}>🦎</span>
+                </div>
                 <span className="text-2xl font-anton tracking-wider text-black dark:text-white uppercase">
                   THE LIZARD <span className="text-red-600">KING</span>
                 </span>
